@@ -1,0 +1,6 @@
+https://github.com/PyO3/pyo3
+https://docs.rs/ndarray/latest/ndarray/
+
+
+To build use:
+> cargo build --no-default-features
