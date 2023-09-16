@@ -160,6 +160,7 @@ name = "pyift"
 version = "0.2.0"
 dependencies = [
  "ndarray",
+ "num-traits",
  "numpy",
  "pyo3",
 ]
