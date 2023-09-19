@@ -1,5 +1,7 @@
 use pyo3::prelude::*;
 mod heap;
+mod image;
+
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
