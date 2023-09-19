@@ -1,7 +1,6 @@
 
 use ndarray::prelude::*;
 use numpy::{Element};
-use pyo3::prelude::*;
 use num_traits::{Bounded};
 
 
@@ -28,7 +27,7 @@ where
 }
 
 
-impl<'a, T> Heap<T>
+impl<T> Heap<T>
 where
     T: Bounded + Copy + Clone + Element + PartialOrd,
 {
