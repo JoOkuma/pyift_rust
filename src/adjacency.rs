@@ -1,37 +1,45 @@
 
-pub struct Image2D
+pub trait Adjacency
 {
-    pub width: usize,
-    pub height: usize,
+    fn neighbors(&self, p: usize) -> Vec<usize>;
 }
 
 
-pub struct Image3D
+pub struct AdjacencyGrid2D
 {
-    pub width: usize,
-    pub height: usize,
-    pub depth: usize,
+    shape: [usize; 2],
 }
 
 
-impl Image2D
+impl AdjacencyGrid2D
 {
-    pub fn new(width: usize, height: usize) -> Self
+    pub fn new(shape: &[usize]) -> Self
     {
-        Image2D { width, height }
+        AdjacencyGrid2D {
+            shape: [shape[0], shape[1]],
+        }
     }
 
     #[inline]
     fn to_index(&self, x: usize, y: usize) -> usize
     {
-        x + y * self.width
+        x + y * self.shape[1]
     }
 
     #[inline]
-    pub fn neighbors(&self, p: usize) -> Vec<usize> 
+    fn is_valid(&self, x: usize, y: usize) -> bool
     {
-        let x = p % self.width;
-        let y = p / self.width;
+        y < self.shape[0] && x < self.shape[1]
+    }
+}
+
+
+impl Adjacency for AdjacencyGrid2D
+{
+    fn neighbors(&self, p: usize) -> Vec<usize> 
+    {
+        let x = p % self.shape[1];
+        let y = p / self.shape[1];
         // array of neighbors
 
         // wraps around so validation is done upper bound only
@@ -49,34 +57,46 @@ impl Image2D
         
         valid_neighbors
     }
-
-    #[inline]
-    fn is_valid(&self, x: usize, y: usize) -> bool
-    {
-        x < self.width && y < self.height
-    }
 }
 
 
-impl Image3D
+pub struct AdjacencyGrid3D
 {
-    pub fn new(width: usize, height: usize, depth: usize) -> Self
+    shape: [usize; 3],
+}
+
+
+impl AdjacencyGrid3D
+{
+    pub fn new(shape: &[usize]) -> Self
     {
-        Image3D { width, height, depth }
+        AdjacencyGrid3D {
+             shape: [shape[0], shape[1], shape[2]],
+        }
     }
 
     #[inline]
     fn to_index(&self, x: usize, y: usize, z: usize) -> usize
     {
-        x + y * self.width + z * self.width * self.height
+        x + y * self.shape[2] + z * self.shape[1] * self.shape[2]
     }
 
     #[inline]
-    pub fn neighbors(&self, p: usize) -> Vec<usize> 
+    fn is_valid(&self, x: usize, y: usize, z: usize) -> bool
     {
-        let x = p % self.width;
-        let y = (p / self.width) % self.height;
-        let z = p / (self.width * self.height);
+        z < self.shape[0] && y < self.shape[1] && x < self.shape[2]
+    }
+}
+
+
+impl Adjacency for AdjacencyGrid3D
+{
+    #[inline]
+    fn neighbors(&self, p: usize) -> Vec<usize> 
+    {
+        let x = p % self.shape[2];
+        let y = (p / self.shape[2]) % self.shape[1];
+        let z = p / (self.shape[2] * self.shape[1]);
         // array of neighbors
 
         // wraps around so validation is done upper bound only
@@ -96,12 +116,6 @@ impl Image3D
         
         valid_neighbors
     }
-
-    #[inline]
-    fn is_valid(&self, x: usize, y: usize, z: usize) -> bool
-    {
-        x < self.width && y < self.height && z < self.depth
-    }
 }
 
 
@@ -109,8 +123,9 @@ impl Image3D
 #[test]
 fn test_2d_neighborhood()
 {
-    let image = Image2D::new(3, 3);
-    let neighbors = image.neighbors(4);
+    let shape = [3, 3];
+    let adj = AdjacencyGrid2D::new(&shape);
+    let neighbors = adj.neighbors(4);
     assert_eq!(neighbors.len(), 4);
     assert_eq!(neighbors[0], 3);
     assert_eq!(neighbors[1], 5);
@@ -118,13 +133,13 @@ fn test_2d_neighborhood()
     assert_eq!(neighbors[3], 7);
 
     // check invalid neighbors
-    let neighbors = image.neighbors(0);
+    let neighbors = adj.neighbors(0);
     assert_eq!(neighbors.len(), 2);
 
-    let neighbors = image.neighbors(8);
+    let neighbors = adj.neighbors(8);
     assert_eq!(neighbors.len(), 2);
 
-    let neighbors = image.neighbors(1);
+    let neighbors = adj.neighbors(1);
     assert_eq!(neighbors.len(), 3);
 }
 
@@ -132,8 +147,9 @@ fn test_2d_neighborhood()
 #[test]
 fn test_3d_neighboorhood()
 {
-    let image = Image3D::new(3, 3, 3);
-    let neighbors = image.neighbors(13);
+    let shape = [3, 3, 3];
+    let adj = AdjacencyGrid3D::new(&shape);
+    let neighbors = adj.neighbors(13);
     assert_eq!(neighbors.len(), 6);
     assert_eq!(neighbors[0], 12);
     assert_eq!(neighbors[1], 14);
@@ -143,15 +159,15 @@ fn test_3d_neighboorhood()
     assert_eq!(neighbors[5], 22);
 
     // check invalid neighbors
-    let neighbors = image.neighbors(0);
+    let neighbors = adj.neighbors(0);
     assert_eq!(neighbors.len(), 3);
 
-    let neighbors = image.neighbors(26);
+    let neighbors = adj.neighbors(26);
     assert_eq!(neighbors.len(), 3);
 
-    let neighbors = image.neighbors(1);
+    let neighbors = adj.neighbors(1);
     assert_eq!(neighbors.len(), 4);
 
-    let neighbors = image.neighbors(4);
+    let neighbors = adj.neighbors(4);
     assert_eq!(neighbors.len(), 5);
 }
