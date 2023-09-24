@@ -5,7 +5,7 @@ use num_traits::{Bounded};
 
 
 #[derive(Clone, Debug, PartialEq)]
-enum ElemStatus
+pub enum ElemStatus
 {
     OUT,
     IN,
@@ -13,25 +13,25 @@ enum ElemStatus
 }
 
 
-pub struct Heap<T>
+pub struct Heap<'a, T>
 where
     T: Bounded + Copy + Clone + Element + PartialOrd,
 {
-    values: Array1<T>,
+    pub values: &'a mut Array1<T>,
     nodes: Vec<usize>,
     pos: Vec<usize>,
     last: usize,
     size: usize,
-    status: Vec<ElemStatus>,
+    pub status: Vec<ElemStatus>,
     ages: Vec<i64>,
 }
 
 
-impl<T> Heap<T>
+impl<'a, T> Heap<'a, T>
 where
     T: Bounded + Copy + Clone + Element + PartialOrd,
 {
-    fn new(values: Array1<T>) -> Self {
+    pub fn new(values: &'a mut Array1<T>) -> Self {
         let size = values.len();
         if size < 1 {
             panic!("Heap size must be greater than 0");
@@ -54,13 +54,13 @@ where
     }
 
     #[inline]
-    fn is_full(&self) -> bool
+    pub fn is_full(&self) -> bool
     {
         self.last + 1 == self.size
     }
 
     #[inline]
-    fn is_empty(&self) -> bool
+    pub fn is_empty(&self) -> bool
     {
         self.last == self.size
     }
@@ -250,10 +250,10 @@ where
 fn test_heap()
 {
     // Create an ArrayView1 from a Vec of i32 values
-    let values = Array1::from(vec![3, 1, 2, 4]);
+    let mut values = Array1::from(vec![3, 1, 2, 4]);
 
     // Create a Heap instance with Minimum policy
-    let mut heap = Heap::new(values);
+    let mut heap = Heap::new(&mut values);
 
     heap.is_empty();
 
