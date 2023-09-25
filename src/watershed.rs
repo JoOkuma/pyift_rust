@@ -7,20 +7,31 @@ use crate::heap::{ElemStatus, Heap};
 use crate::adjacency::{Adjacency, AdjacencyGrid2D, AdjacencyGrid3D};
 
 
-pub fn watershed_from_minima<T>(
-    topology: &ArrayView1<T>,
-     mask: &ArrayView1<bool>,
-    adj: &dyn Adjacency,
+pub fn watershed_from_minima<T, D>(
+    topology: &ArrayView<T, D>,
+    mask: &ArrayView<bool, D>,
     h: T,
-) -> Array1<usize>
+) -> Array<usize, D>
     where
     T: Add<Output = T> + Bounded + Copy + Clone + Element + PartialOrd + Ord + Zero,
+    D: Dimension,
 {
+    let shape = topology.dim();
+
+    let adj: Box<dyn Adjacency> = match D::NDIM.unwrap() {
+        2 => Box::new(AdjacencyGrid2D::new(topology.shape())),
+        3 => Box::new(AdjacencyGrid3D::new(topology.shape())),
+        _ => panic!("Unsupported dimension!"),
+    };
+
+    let topology = topology.to_shape(topology.len()).unwrap();
+    let mask = mask.to_shape(mask.len()).unwrap();
+
     if h <= T::zero() {
         panic!("h must be greater than 0");
     }
 
-    let size: usize = topology.shape().iter().product();
+    let size: usize = topology.len();
     let mut cost = topology
         .to_shape(size)
         .unwrap()
@@ -72,7 +83,7 @@ pub fn watershed_from_minima<T>(
         }
     }
 
-    root
+    root.into_shape(shape).unwrap()
 }
 
 
@@ -81,21 +92,15 @@ fn test_watershed_from_minima() {
     // TODO: Test 3D and do a real 2D example
     // Test 1
     let image = array![[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+    let shape = image.dim();
+    let mask = Array2::from_elem(shape, true);
 
-    let adj = AdjacencyGrid2D::new(image.shape());
-
-    let flat_shape: usize = image.shape().iter().product();
-
-    let flat_image = image.into_shape(flat_shape).unwrap();
-    let mask = Array1::from_elem(flat_shape, true);
-
-    let expected_labels = array![1, 1, 1, 1, 1, 1, 1, 1, 1];
+    let expected_labels = array![[1, 1, 1], [1, 1, 1], [1, 1, 1]];
 
     let result = watershed_from_minima(
-        &flat_image.view(),
+        &image.view(),
         &mask.view(),
-        &adj,
-        1
+        1,
     );
     assert_eq!(result, expected_labels);
 }
