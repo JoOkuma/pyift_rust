@@ -96,32 +96,26 @@ where
     fn lower(&self, i: usize, j: usize) -> bool {
         let node_i = self.nodes[i];
         let node_j = self.nodes[j];
-        if (self.values[node_i] < self.values[node_j])
+        (self.values[node_i] < self.values[node_j])
             || (self.values[node_i] == self.values[node_j] && self.ages[node_i] < self.ages[node_j])
-        {
-            return true;
-        }
-        return false;
     }
 
     #[inline]
     fn greater(&self, i: usize, j: usize) -> bool {
         let node_i = self.nodes[i];
         let node_j = self.nodes[j];
-        if (self.values[node_i] > self.values[node_j])
+        (self.values[node_i] > self.values[node_j])
             || (self.values[node_i] == self.values[node_j] && self.ages[node_i] > self.ages[node_j])
-        {
-            return true;
-        }
-        return false;
     }
 
     // moves towards root (smaller values) of heap
     fn move_up_from_position(&mut self, pos: usize) -> () {
-        let mut parent = self.parent(pos);
-        while (parent >= 0) && self.greater(parent as usize, pos) {
-            self.swap(parent as usize, pos);
-            parent = self.parent(pos);
+        let mut current = pos;
+        let mut parent = self.parent(current);
+        while (parent >= 0) && self.greater(parent as usize, current) {
+            self.swap(parent as usize, current);
+            current = parent as usize;
+            parent = self.parent(current);
         }
     }
 
