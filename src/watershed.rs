@@ -96,11 +96,11 @@ fn test_watershed_from_minima() {
 
 macro_rules! impl_watershed_from_minima {
     ($new_name:ident, $ty:ty, $dim:expr) => {
-        // #[pyfunction]
+        #[pyfunction]
         pub fn $new_name<'py>(
             py: Python<'py>,
-            topology: &PyReadonlyArray<$ty, Dim<[usize; $dim]>>,
-            mask: &PyReadonlyArray<bool, Dim<[usize; $dim]>>,
+            topology: PyReadonlyArray<$ty, Dim<[usize; $dim]>>,
+            mask: PyReadonlyArray<bool, Dim<[usize; $dim]>>,
             h: $ty,
         ) -> PyResult<&'py PyArray<usize, Dim<[usize; $dim]>>> {
             let arr = watershed_from_minima(&topology.as_array(), &mask.as_array(), h);
