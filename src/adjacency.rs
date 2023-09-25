@@ -1,43 +1,31 @@
-
-pub trait Adjacency
-{
+pub trait Adjacency {
     fn neighbors(&self, p: usize) -> Vec<usize>;
 }
 
-
-pub struct AdjacencyGrid2D
-{
+pub struct AdjacencyGrid2D {
     shape: [usize; 2],
 }
 
-
-impl AdjacencyGrid2D
-{
-    pub fn new(shape: &[usize]) -> Self
-    {
+impl AdjacencyGrid2D {
+    pub fn new(shape: &[usize]) -> Self {
         AdjacencyGrid2D {
             shape: [shape[0], shape[1]],
         }
     }
 
     #[inline]
-    fn to_index(&self, x: usize, y: usize) -> usize
-    {
+    fn to_index(&self, x: usize, y: usize) -> usize {
         x + y * self.shape[1]
     }
 
     #[inline]
-    fn is_valid(&self, x: usize, y: usize) -> bool
-    {
+    fn is_valid(&self, x: usize, y: usize) -> bool {
         y < self.shape[0] && x < self.shape[1]
     }
 }
 
-
-impl Adjacency for AdjacencyGrid2D
-{
-    fn neighbors(&self, p: usize) -> Vec<usize> 
-    {
+impl Adjacency for AdjacencyGrid2D {
+    fn neighbors(&self, p: usize) -> Vec<usize> {
         let x = p % self.shape[1];
         let y = p / self.shape[1];
         // array of neighbors
@@ -50,50 +38,41 @@ impl Adjacency for AdjacencyGrid2D
             (x, y.wrapping_add(1)),
         ];
 
-        let valid_neighbors = neighbors.into_iter()
+        let valid_neighbors = neighbors
+            .into_iter()
             .filter(|&(x, y)| self.is_valid(x, y))
             .map(|(x, y)| self.to_index(x, y))
             .collect::<Vec<_>>();
-        
+
         valid_neighbors
     }
 }
 
-
-pub struct AdjacencyGrid3D
-{
+pub struct AdjacencyGrid3D {
     shape: [usize; 3],
 }
 
-
-impl AdjacencyGrid3D
-{
-    pub fn new(shape: &[usize]) -> Self
-    {
+impl AdjacencyGrid3D {
+    pub fn new(shape: &[usize]) -> Self {
         AdjacencyGrid3D {
-             shape: [shape[0], shape[1], shape[2]],
+            shape: [shape[0], shape[1], shape[2]],
         }
     }
 
     #[inline]
-    fn to_index(&self, x: usize, y: usize, z: usize) -> usize
-    {
+    fn to_index(&self, x: usize, y: usize, z: usize) -> usize {
         x + y * self.shape[2] + z * self.shape[1] * self.shape[2]
     }
 
     #[inline]
-    fn is_valid(&self, x: usize, y: usize, z: usize) -> bool
-    {
+    fn is_valid(&self, x: usize, y: usize, z: usize) -> bool {
         z < self.shape[0] && y < self.shape[1] && x < self.shape[2]
     }
 }
 
-
-impl Adjacency for AdjacencyGrid3D
-{
+impl Adjacency for AdjacencyGrid3D {
     #[inline]
-    fn neighbors(&self, p: usize) -> Vec<usize> 
-    {
+    fn neighbors(&self, p: usize) -> Vec<usize> {
         let x = p % self.shape[2];
         let y = (p / self.shape[2]) % self.shape[1];
         let z = p / (self.shape[2] * self.shape[1]);
@@ -109,20 +88,18 @@ impl Adjacency for AdjacencyGrid3D
             (x, y, z.wrapping_add(1)),
         ];
 
-        let valid_neighbors = neighbors.into_iter()
+        let valid_neighbors = neighbors
+            .into_iter()
             .filter(|&(x, y, z)| self.is_valid(x, y, z))
             .map(|(x, y, z)| self.to_index(x, y, z))
             .collect::<Vec<_>>();
-        
+
         valid_neighbors
     }
 }
 
-
-
 #[test]
-fn test_2d_neighborhood()
-{
+fn test_2d_neighborhood() {
     let shape = [3, 3];
     let adj = AdjacencyGrid2D::new(&shape);
     let neighbors = adj.neighbors(4);
@@ -143,10 +120,8 @@ fn test_2d_neighborhood()
     assert_eq!(neighbors.len(), 3);
 }
 
-
 #[test]
-fn test_3d_neighboorhood()
-{
+fn test_3d_neighboorhood() {
     let shape = [3, 3, 3];
     let adj = AdjacencyGrid3D::new(&shape);
     let neighbors = adj.neighbors(13);

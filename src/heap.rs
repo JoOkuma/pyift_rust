@@ -1,17 +1,13 @@
-
 use ndarray::prelude::*;
-use numpy::{Element};
-use num_traits::{Bounded};
-
+use num_traits::Bounded;
+use numpy::Element;
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum ElemStatus
-{
+pub enum ElemStatus {
     OUT,
     IN,
     POPPED,
 }
-
 
 pub struct Heap<'a, T>
 where
@@ -25,7 +21,6 @@ where
     pub status: Vec<ElemStatus>,
     ages: Vec<i64>,
 }
-
 
 impl<'a, T> Heap<'a, T>
 where
@@ -54,19 +49,16 @@ where
     }
 
     #[inline]
-    pub fn is_full(&self) -> bool
-    {
+    pub fn is_full(&self) -> bool {
         self.last + 1 == self.size
     }
 
     #[inline]
-    pub fn is_empty(&self) -> bool
-    {
+    pub fn is_empty(&self) -> bool {
         self.last == self.size
     }
 
-    fn reset(&mut self) -> ()
-    {
+    fn reset(&mut self) -> () {
         self.last = self.size;
         for i in 0..self.size {
             self.nodes[i] = i;
@@ -77,26 +69,22 @@ where
     }
 
     #[inline]
-    fn parent(&self, i: usize) -> i64
-    {
+    fn parent(&self, i: usize) -> i64 {
         (i as i64 - 1) / 2
     }
 
     #[inline]
-    fn left_child(&self, i: usize) -> usize
-    {
+    fn left_child(&self, i: usize) -> usize {
         2 * i + 1
     }
 
     #[inline]
-    fn right_child(&self, i: usize) -> usize
-    {
+    fn right_child(&self, i: usize) -> usize {
         2 * i + 2
     }
 
     #[inline]
-    fn swap(&mut self, i: usize, j: usize) -> ()
-    {
+    fn swap(&mut self, i: usize, j: usize) -> () {
         let tmp = self.nodes[i];
         self.nodes[i] = self.nodes[j];
         self.nodes[j] = tmp;
@@ -105,32 +93,31 @@ where
     }
 
     #[inline]
-    fn lower(&self, i: usize, j: usize) -> bool
-    {
+    fn lower(&self, i: usize, j: usize) -> bool {
         let node_i = self.nodes[i];
         let node_j = self.nodes[j];
-        if (self.values[node_i] < self.values[node_j]) ||
-           (self.values[node_i] == self.values[node_j] && self.ages[node_i] < self.ages[node_j]) {
+        if (self.values[node_i] < self.values[node_j])
+            || (self.values[node_i] == self.values[node_j] && self.ages[node_i] < self.ages[node_j])
+        {
             return true;
         }
         return false;
     }
 
     #[inline]
-    fn greater(&self, i: usize, j: usize) -> bool
-    {
+    fn greater(&self, i: usize, j: usize) -> bool {
         let node_i = self.nodes[i];
         let node_j = self.nodes[j];
-        if (self.values[node_i] > self.values[node_j]) ||
-           (self.values[node_i] == self.values[node_j] && self.ages[node_i] > self.ages[node_j]) {
+        if (self.values[node_i] > self.values[node_j])
+            || (self.values[node_i] == self.values[node_j] && self.ages[node_i] > self.ages[node_j])
+        {
             return true;
         }
         return false;
     }
 
     // moves towards root (smaller values) of heap
-    fn move_up_from_position(&mut self, pos: usize) -> ()
-    {
+    fn move_up_from_position(&mut self, pos: usize) -> () {
         let mut parent = self.parent(pos);
         while (parent >= 0) && self.greater(parent as usize, pos) {
             self.swap(parent as usize, pos);
@@ -138,8 +125,7 @@ where
         }
     }
 
-    fn move_down_from_position(&mut self, pos: usize) -> ()
-    {
+    fn move_down_from_position(&mut self, pos: usize) -> () {
         let mut next = pos;
         let left = self.left_child(pos);
         let right = self.right_child(pos);
@@ -156,8 +142,7 @@ where
     }
 
     #[inline]
-    fn try_update_age(&mut self, index: usize, parent_index: i64) -> ()
-    {
+    fn try_update_age(&mut self, index: usize, parent_index: i64) -> () {
         if parent_index >= 0 {
             self.ages[index] = self.ages[parent_index as usize] + 1;
         } else {
@@ -165,10 +150,8 @@ where
         }
     }
 
-    pub fn insert(&mut self, index: usize, parent_index: i64) -> Result<(), &'static str>
-    {
-        if self.is_full()
-        {
+    pub fn insert(&mut self, index: usize, parent_index: i64) -> Result<(), &'static str> {
+        if self.is_full() {
             return Err("Heap is full");
         }
 
@@ -188,10 +171,8 @@ where
         Ok(())
     }
 
-    pub fn pop(&mut self) -> Result<usize, &'static str>
-    {
-        if self.is_empty()
-        {
+    pub fn pop(&mut self) -> Result<usize, &'static str> {
+        if self.is_empty() {
             return Err("Heap is empty");
         }
 
@@ -210,12 +191,10 @@ where
             self.move_down_from_position(0);
         }
         Ok(index)
-   }
+    }
 
-   pub fn remove(&mut self, index: usize) -> Result<(), &'static str>
-   {
-        if self.pos[index] == self.size
-        {
+    pub fn remove(&mut self, index: usize) -> Result<(), &'static str> {
+        if self.pos[index] == self.size {
             return Err("Element not in heap");
         }
 
@@ -229,26 +208,21 @@ where
         self.status[index] = ElemStatus::OUT;
 
         Ok(())
-   }
+    }
 
-   pub fn move_up(&mut self, index: usize, parent_index: i64) -> ()
-   {
+    pub fn move_up(&mut self, index: usize, parent_index: i64) -> () {
         self.try_update_age(index, parent_index);
         self.move_up_from_position(self.pos[index]);
-   }
+    }
 
-   pub fn move_down(&mut self, index: usize, parent_index: i64) -> ()
-   {
+    pub fn move_down(&mut self, index: usize, parent_index: i64) -> () {
         self.try_update_age(index, parent_index);
         self.move_down_from_position(self.pos[index]);
-   }
-
+    }
 }
 
-
 #[test]
-fn test_heap()
-{
+fn test_heap() {
     // Create an ArrayView1 from a Vec of i32 values
     let mut values = Array1::from(vec![3, 1, 2, 4]);
 
@@ -312,7 +286,7 @@ fn test_heap()
     // Remove element
     heap.remove(0).unwrap();
 
-    assert_eq!(heap.last, 0);  // single element left
+    assert_eq!(heap.last, 0); // single element left
     assert!(!heap.is_full());
 
     heap.reset();
@@ -321,5 +295,4 @@ fn test_heap()
     for i in 0..heap.size {
         assert_eq!(heap.status[i], ElemStatus::OUT);
     }
-
 }
