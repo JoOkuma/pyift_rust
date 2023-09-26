@@ -13,12 +13,10 @@ impl AdjacencyGrid2D {
         }
     }
 
-    #[inline]
     fn to_index(&self, x: usize, y: usize) -> usize {
         x + y * self.shape[1]
     }
 
-    #[inline]
     fn is_valid(&self, x: usize, y: usize) -> bool {
         y < self.shape[0] && x < self.shape[1]
     }
@@ -59,19 +57,16 @@ impl AdjacencyGrid3D {
         }
     }
 
-    #[inline]
     fn to_index(&self, x: usize, y: usize, z: usize) -> usize {
         x + y * self.shape[2] + z * self.shape[1] * self.shape[2]
     }
 
-    #[inline]
     fn is_valid(&self, x: usize, y: usize, z: usize) -> bool {
         z < self.shape[0] && y < self.shape[1] && x < self.shape[2]
     }
 }
 
 impl Adjacency for AdjacencyGrid3D {
-    #[inline]
     fn neighbors(&self, p: usize) -> Vec<usize> {
         let x = p % self.shape[2];
         let y = (p / self.shape[2]) % self.shape[1];

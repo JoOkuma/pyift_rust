@@ -48,12 +48,10 @@ where
         heap
     }
 
-    #[inline]
     pub fn is_full(&self) -> bool {
         self.last + 1 == self.size
     }
 
-    #[inline]
     pub fn is_empty(&self) -> bool {
         self.last == self.size
     }
@@ -68,22 +66,18 @@ where
         }
     }
 
-    #[inline]
     fn parent(&self, i: usize) -> i64 {
         (i as i64 - 1) / 2
     }
 
-    #[inline]
     fn left_child(&self, i: usize) -> usize {
         2 * i + 1
     }
 
-    #[inline]
     fn right_child(&self, i: usize) -> usize {
         2 * i + 2
     }
 
-    #[inline]
     fn swap(&mut self, i: usize, j: usize) -> () {
         let tmp = self.nodes[i];
         self.nodes[i] = self.nodes[j];
@@ -92,7 +86,6 @@ where
         self.pos[self.nodes[j]] = j;
     }
 
-    #[inline]
     fn lower(&self, i: usize, j: usize) -> bool {
         let node_i = self.nodes[i];
         let node_j = self.nodes[j];
@@ -100,7 +93,6 @@ where
             || (self.values[node_i] == self.values[node_j] && self.ages[node_i] < self.ages[node_j])
     }
 
-    #[inline]
     fn greater(&self, i: usize, j: usize) -> bool {
         let node_i = self.nodes[i];
         let node_j = self.nodes[j];
@@ -135,7 +127,6 @@ where
         }
     }
 
-    #[inline]
     fn try_update_age(&mut self, index: usize, parent_index: i64) -> () {
         if parent_index >= 0 {
             self.ages[index] = self.ages[parent_index as usize] + 1;
@@ -182,6 +173,7 @@ where
             self.last = self.size;
         } else {
             self.last -= 1;
+            // FIXME: this step is extremelly slow on watershed from minima
             self.move_down_from_position(0);
         }
         Ok(index)
