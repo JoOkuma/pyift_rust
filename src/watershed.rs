@@ -48,27 +48,29 @@ where
         let p = heap.pop().unwrap();
 
         if root[p] == p {
-            heap.values[p] = topology[p];
+            heap.update_value(p, topology[p], -1);
         }
 
         for q in adj.neighbors(p) {
             if mask[q] && heap.status[q] != ElemStatus::POPPED {
                 let path_cost: T;
-                if topology[q] > heap.values[p] {
+
+                // fmax
+                if topology[q] > heap.get_value(p) {
                     path_cost = topology[q];
                 } else {
-                    path_cost = heap.values[p];
+                    path_cost = heap.get_value(p);
                 }
 
-                if path_cost < heap.values[q] {
+                if path_cost < heap.get_value(q) {
                     root[q] = root[p];
-                    heap.values[q] = path_cost;
-                    heap.move_up(q, p as i64);
+                    heap.update_value(q, path_cost, p as i64);
                 }
             }
         }
     }
 
+    // avoiding zero label in segmentation label
     for i in 0..size {
         if mask[i] {
             root[i] += 1;

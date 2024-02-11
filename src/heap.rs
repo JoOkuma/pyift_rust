@@ -13,7 +13,7 @@ pub struct Heap<'a, T>
 where
     T: Bounded + Copy + Clone + Element + PartialOrd,
 {
-    pub values: &'a mut Array1<T>,
+    values: &'a mut Array1<T>,
     nodes: Vec<usize>,
     pos: Vec<usize>,
     last: usize,
@@ -196,14 +196,33 @@ where
         Ok(())
     }
 
-    pub fn move_up(&mut self, index: usize, parent_index: i64) -> () {
+    fn move_up(&mut self, index: usize, parent_index: i64) -> () {
         self.try_update_age(index, parent_index);
         self.move_up_from_position(self.pos[index]);
     }
 
-    pub fn move_down(&mut self, index: usize, parent_index: i64) -> () {
+    fn move_down(&mut self, index: usize, parent_index: i64) -> () {
         self.try_update_age(index, parent_index);
         self.move_down_from_position(self.pos[index]);
+    }
+
+    pub fn update_value(&mut self, index: usize, value: T, parent_index: i64) -> () {
+        let prev_value = self.values[index];
+
+        self.values[index] = value;
+
+        if self.status[index] == ElemStatus::IN {
+            if value < prev_value {
+                self.move_up(index, parent_index)
+            } else if value > prev_value {
+                self.move_down(index, parent_index)
+            }
+        }
+    }
+
+    #[inline(always)]
+    pub fn get_value(&self, index: usize) -> T {
+        self.values[index]
     }
 }
 
@@ -255,14 +274,12 @@ fn test_heap() {
 
     // Increase value
     assert_eq!(heap.pos[2], 0);
-    heap.values[2] = 5;
-    heap.move_down(2, -1);
+    heap.update_value(2, 5, -1);
 
     assert_eq!(heap.pos[0], 0);
 
     // Return to original value
-    heap.values[2] = 2;
-    heap.move_up(2, -1);
+    heap.update_value(2, 2, -1);
 
     assert_eq!(heap.pos[2], 0);
 
