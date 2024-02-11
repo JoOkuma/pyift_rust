@@ -3,13 +3,21 @@ use num_traits::{Bounded, ToPrimitive, Zero};
 use numpy::{Element, IntoPyArray, PyArray, PyReadonlyArray};
 use pyo3::prelude::*;
 use std::ops::{Add, Sub};
+use std::any::TypeId;
 
 use crate::adjacency::{Adjacency, AdjacencyGrid2D, AdjacencyGrid3D};
 use crate::bucket_queue::BucketQueue;
 use crate::heap::Heap;
 use crate::priority_queue::{ElemStatus, PriorityQueue};
 
-pub fn watershed_from_minima<T, D, Q>(
+
+fn is_float<T: 'static>() -> bool {
+    let type_id = TypeId::of::<T>();
+    type_id == TypeId::of::<f32>() || type_id == TypeId::of::<f64>()
+}
+
+
+pub fn watershed_from_minima<T, D>(
     topology: &ArrayView<T, D>,
     mask: &ArrayView<bool, D>,
     h: T,
@@ -23,9 +31,9 @@ where
         + Element
         + PartialOrd
         + ToPrimitive
-        + Zero,
+        + Zero
+        + 'static,
     D: Dimension,
-    Q: for<'a> PriorityQueue<'a, T>,
 {
     let shape = topology.dim();
 
@@ -46,7 +54,12 @@ where
     let mut root: Array1<usize> = Array1::from_shape_vec(Ix1(size), (0..size).collect()).unwrap();
 
     let mut cost = topology.to_shape(size).unwrap().mapv(|x| x + h);
-    let mut queue = Q::new(&mut cost);
+
+    let mut queue: Box<dyn PriorityQueue<T>> = match is_float::<T>() {
+        false => Box::new(BucketQueue::new(&mut cost)),
+        true => Box::new(Heap::new(&mut cost)),
+        _ => panic!("Unsupported dimension!"),
+    };
 
     for i in 0..size {
         if mask[i] {
@@ -102,13 +115,12 @@ fn test_watershed_from_minima() {
 
     let expected_labels = array![[1, 1, 1], [1, 1, 1], [1, 1, 1]];
 
-    // let result = watershed_from_minima::<i32, Dim<[usize; 2]>, BucketQueue<i32>>(&image.view(), &mask.view(), 1);
-    let result = watershed_from_minima::<_, _, BucketQueue<_>>(&image.view(), &mask.view(), 1);
+    let result = watershed_from_minima(&image.view(), &mask.view(), 1);
     assert_eq!(result, expected_labels);
 }
 
 macro_rules! impl_watershed_from_minima {
-    ($new_name:ident, $ty:ty, $dim:expr, $q:ty) => {
+    ($new_name:ident, $ty:ty, $dim:expr) => {
         #[pyfunction]
         pub fn $new_name<'py>(
             py: Python<'py>,
@@ -116,27 +128,28 @@ macro_rules! impl_watershed_from_minima {
             mask: PyReadonlyArray<bool, Dim<[usize; $dim]>>,
             h: $ty,
         ) -> PyResult<&'py PyArray<usize, Dim<[usize; $dim]>>> {
-            let arr = watershed_from_minima::<_, _, $q>(&topology.as_array(), &mask.as_array(), h);
+            let arr = watershed_from_minima(&topology.as_array(), &mask.as_array(), h);
             let py_array = arr.into_pyarray(py);
             Ok(py_array)
         }
     };
 }
-impl_watershed_from_minima!(watershed_from_minima_u8_2d, u8, 2, BucketQueue<u8>);
-impl_watershed_from_minima!(watershed_from_minima_u8_3d, u8, 3, BucketQueue<u8>);
-impl_watershed_from_minima!(watershed_from_minima_u16_2d, u16, 2, BucketQueue<u16>);
-impl_watershed_from_minima!(watershed_from_minima_u16_3d, u16, 3, BucketQueue<u16>);
-impl_watershed_from_minima!(watershed_from_minima_u32_2d, u32, 2, BucketQueue<u32>);
-impl_watershed_from_minima!(watershed_from_minima_u32_3d, u32, 3, BucketQueue<u32>);
 
-impl_watershed_from_minima!(watershed_from_minima_i16_2d, i16, 2, BucketQueue<i16>);
-impl_watershed_from_minima!(watershed_from_minima_i16_3d, i16, 3, BucketQueue<i16>);
-impl_watershed_from_minima!(watershed_from_minima_i32_2d, i32, 2, BucketQueue<i32>);
-impl_watershed_from_minima!(watershed_from_minima_i32_3d, i32, 3, BucketQueue<i32>);
-impl_watershed_from_minima!(watershed_from_minima_i64_2d, i64, 2, BucketQueue<i64>);
-impl_watershed_from_minima!(watershed_from_minima_i64_3d, i64, 3, BucketQueue<i64>);
+impl_watershed_from_minima!(watershed_from_minima_u8_2d, u8, 2);
+impl_watershed_from_minima!(watershed_from_minima_u8_3d, u8, 3);
+impl_watershed_from_minima!(watershed_from_minima_u16_2d, u16, 2);
+impl_watershed_from_minima!(watershed_from_minima_u16_3d, u16, 3);
+impl_watershed_from_minima!(watershed_from_minima_u32_2d, u32, 2);
+impl_watershed_from_minima!(watershed_from_minima_u32_3d, u32, 3);
 
-impl_watershed_from_minima!(watershed_from_minima_f32_2d, f32, 2, Heap<f32>);
-impl_watershed_from_minima!(watershed_from_minima_f32_3d, f32, 3, Heap<f32>);
-impl_watershed_from_minima!(watershed_from_minima_f64_2d, f64, 2, Heap<f64>);
-impl_watershed_from_minima!(watershed_from_minima_f64_3d, f64, 3, Heap<f64>);
+impl_watershed_from_minima!(watershed_from_minima_i16_2d, i16, 2);
+impl_watershed_from_minima!(watershed_from_minima_i16_3d, i16, 3);
+impl_watershed_from_minima!(watershed_from_minima_i32_2d, i32, 2);
+impl_watershed_from_minima!(watershed_from_minima_i32_3d, i32, 3);
+impl_watershed_from_minima!(watershed_from_minima_i64_2d, i64, 2);
+impl_watershed_from_minima!(watershed_from_minima_i64_3d, i64, 3);
+
+impl_watershed_from_minima!(watershed_from_minima_f32_2d, f32, 2);
+impl_watershed_from_minima!(watershed_from_minima_f32_3d, f32, 3);
+impl_watershed_from_minima!(watershed_from_minima_f64_2d, f64, 2);
+impl_watershed_from_minima!(watershed_from_minima_f64_3d, f64, 3);

@@ -7,9 +7,7 @@ pub enum ElemStatus {
     POPPED,
 }
 
-pub trait PriorityQueue<'a, T> {
-    fn new(values: &'a mut Array1<T>) -> Self;
-    // fn new(&self, values: &'a mut Array1<T>) -> Self where Self: Sized;
+pub trait PriorityQueue<'a, T: 'static> {
     fn is_full(&self) -> bool;
     fn is_empty(&mut self) -> bool;
     fn insert(&mut self, index: usize, parent_index: i64) -> Result<(), &'static str>;

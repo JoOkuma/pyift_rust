@@ -3,7 +3,7 @@ use ndarray::prelude::*;
 use num_traits::Bounded;
 use numpy::Element;
 
-pub struct Heap<'a, T>
+pub struct Heap<'a, T: 'static>
 where
     T: Bounded + Copy + Clone + Element + PartialOrd,
 {
@@ -16,32 +16,10 @@ where
     ages: Vec<i64>,
 }
 
-impl<'a, T> PriorityQueue<'a, T> for Heap<'a, T>
+impl<'a, T: 'static> PriorityQueue<'a, T> for Heap<'a, T>
 where
     T: Bounded + Copy + Clone + Element + PartialOrd,
 {
-    fn new(values: &'a mut Array1<T>) -> Self {
-        let size = values.len();
-        if size < 1 {
-            panic!("Heap size must be greater than 0");
-        }
-        let mut nodes = vec![0; size];
-        let mut pos = vec![0; size];
-        let mut status = vec![ElemStatus::OUT; size];
-        let mut ages = vec![0; size];
-        let mut heap = Heap {
-            values,
-            nodes,
-            pos,
-            last: size,
-            size,
-            status,
-            ages,
-        };
-        heap.reset();
-        heap
-    }
-
     fn is_full(&self) -> bool {
         self.last + 1 == self.size
     }
@@ -150,6 +128,28 @@ impl<'a, T> Heap<'a, T>
 where
     T: Bounded + Copy + Clone + Element + PartialOrd,
 {
+    pub fn new(values: &'a mut Array1<T>) -> Self {
+        let size = values.len();
+        if size < 1 {
+            panic!("Heap size must be greater than 0");
+        }
+        let mut nodes = vec![0; size];
+        let mut pos = vec![0; size];
+        let mut status = vec![ElemStatus::OUT; size];
+        let mut ages = vec![0; size];
+        let mut heap = Heap {
+            values,
+            nodes,
+            pos,
+            last: size,
+            size,
+            status,
+            ages,
+        };
+        heap.reset();
+        heap
+    }
+
     fn try_update_age(&mut self, index: usize, parent_index: i64) -> () {
         if parent_index >= 0 {
             self.ages[index] = self.ages[parent_index as usize] + 1;
