@@ -13,10 +13,12 @@ impl AdjacencyGrid2D {
         }
     }
 
+    #[inline(always)]
     fn to_index(&self, x: usize, y: usize) -> usize {
         x + y * self.shape[1]
     }
 
+    #[inline(always)]
     fn is_valid(&self, x: usize, y: usize) -> bool {
         y < self.shape[0] && x < self.shape[1]
     }
@@ -29,18 +31,35 @@ impl Adjacency for AdjacencyGrid2D {
         // array of neighbors
 
         // wraps around so validation is done upper bound only
-        let neighbors = vec![
-            (x.wrapping_sub(1), y),
-            (x.wrapping_add(1), y),
-            (x, y.wrapping_sub(1)),
-            (x, y.wrapping_add(1)),
-        ];
+        let mut valid_neighbors = Vec::<usize>::with_capacity(4);
 
-        let valid_neighbors = neighbors
-            .into_iter()
-            .filter(|&(x, y)| self.is_valid(x, y))
-            .map(|(x, y)| self.to_index(x, y))
-            .collect::<Vec<_>>();
+        // (0, 1)
+        let ny = y.wrapping_add(1);
+        let nx = x;
+        if self.is_valid(nx, ny) {
+            valid_neighbors.push(self.to_index(nx, ny));
+        }
+
+        // (1, 0)
+        let ny = y;
+        let nx = x.wrapping_add(1);
+        if self.is_valid(nx, ny) {
+            valid_neighbors.push(self.to_index(nx, ny));
+        }
+
+        // (0, -1)
+        let ny = y.wrapping_sub(1);
+        let nx = x;
+        if self.is_valid(nx, ny) {
+            valid_neighbors.push(self.to_index(nx, ny));
+        }
+
+        // (-1, 0)
+        let ny = y;
+        let nx = x.wrapping_add(1);
+        if self.is_valid(nx, ny) {
+            valid_neighbors.push(self.to_index(nx, ny));
+        }
 
         valid_neighbors
     }
@@ -57,10 +76,12 @@ impl AdjacencyGrid3D {
         }
     }
 
+    #[inline(always)]
     fn to_index(&self, x: usize, y: usize, z: usize) -> usize {
         x + y * self.shape[2] + z * self.shape[1] * self.shape[2]
     }
 
+    #[inline(always)]
     fn is_valid(&self, x: usize, y: usize, z: usize) -> bool {
         z < self.shape[0] && y < self.shape[1] && x < self.shape[2]
     }
@@ -74,20 +95,55 @@ impl Adjacency for AdjacencyGrid3D {
         // array of neighbors
 
         // wraps around so validation is done upper bound only
-        let neighbors = vec![
-            (x.wrapping_sub(1), y, z),
-            (x.wrapping_add(1), y, z),
-            (x, y.wrapping_sub(1), z),
-            (x, y.wrapping_add(1), z),
-            (x, y, z.wrapping_sub(1)),
-            (x, y, z.wrapping_add(1)),
-        ];
+        let mut valid_neighbors = Vec::<usize>::with_capacity(6);
 
-        let valid_neighbors = neighbors
-            .into_iter()
-            .filter(|&(x, y, z)| self.is_valid(x, y, z))
-            .map(|(x, y, z)| self.to_index(x, y, z))
-            .collect::<Vec<_>>();
+        // (0, 0, 1)
+        let nz = z.wrapping_add(1);
+        let ny = y;
+        let nx = x;
+        if self.is_valid(nx, ny, nz) {
+            valid_neighbors.push(self.to_index(nx, ny, nz));
+        }
+
+        // (0, 1, 0)
+        let nz = z;
+        let ny = y.wrapping_add(1);
+        let nx = x;
+        if self.is_valid(nx, ny, nz) {
+            valid_neighbors.push(self.to_index(nx, ny, nz));
+        }
+
+        // (1, 0, 0)
+        let nz = z;
+        let ny = y;
+        let nx = x.wrapping_add(1);
+        if self.is_valid(nx, ny, nz) {
+            valid_neighbors.push(self.to_index(nx, ny, nz));
+        }
+
+        // (0, 0, -1)
+        let nz = z.wrapping_sub(1);
+        let ny = y;
+        let nx = x;
+        if self.is_valid(nx, ny, nz) {
+            valid_neighbors.push(self.to_index(nx, ny, nz));
+        }
+
+        // (0, -1, 0)
+        let nz = z;
+        let ny = y.wrapping_sub(1);
+        let nx = x;
+        if self.is_valid(nx, ny, nz) {
+            valid_neighbors.push(self.to_index(nx, ny, nz));
+        }
+
+        // (-1, 0, 0)
+        let nz = z;
+        let ny = y;
+        let nx = x.wrapping_sub(1);
+        if self.is_valid(nx, ny, nz) {
+            valid_neighbors.push(self.to_index(nx, ny, nz));
+        }
 
         valid_neighbors
     }

@@ -4,6 +4,7 @@ use numpy::{Element, IntoPyArray, PyArray, PyReadonlyArray};
 use pyo3::prelude::*;
 use std::ops::{Add, Sub};
 use std::any::TypeId;
+use std::fmt::Debug;
 
 use crate::adjacency::{Adjacency, AdjacencyGrid2D, AdjacencyGrid3D};
 use crate::bucket_queue::BucketQueue;
@@ -28,6 +29,7 @@ where
         + Bounded
         + Copy
         + Clone
+        + Debug
         + Element
         + PartialOrd
         + ToPrimitive

@@ -8,13 +8,12 @@ use std::ops::Sub;
 /*
 todo:
     - avoid removing from queue, create a list of invalid nodes and ignore them when popping / checking empty
-    - bucket queue ta buggada
+    - bucket queue does not accept or check for negative values
  */
 
 pub struct BucketQueue<'a, T: 'static> {
     values: &'a mut Array1<T>,
     buckets: Vec<VecDeque<usize>>,
-    min_value: T,
     min_priority: usize,
     max_priority: usize,
     pub status: Vec<ElemStatus>,
@@ -30,8 +29,13 @@ where
 
     fn is_empty(&mut self) -> bool {
         while self.min_priority <= self.max_priority {
-            if !self.buckets[self.min_priority].is_empty() {
-                return false;
+            let bucket = &mut self.buckets[self.min_priority];
+            while !bucket.is_empty()
+            {
+                if self.status[bucket[0]] == ElemStatus::IN {
+                    return false;
+                }
+                bucket.pop_front();
             }
             self.min_priority += 1;
         }
@@ -74,12 +78,6 @@ where
         if self.status[index] != ElemStatus::IN {
             return Err("Removing element not in queue.");
         }
-        let bucket = self.get_bucket(index);
-        let index_in_bucket = self.buckets[bucket]
-            .iter()
-            .position(|&x| x == index)
-            .unwrap();
-        self.buckets[bucket].remove(index_in_bucket);
         self.status[index] = ElemStatus::OUT;
         Ok(())
     }
@@ -125,14 +123,12 @@ where
         if size < 1 {
             panic!("Heap size must be greater than 0");
         }
-        let min_value = *values.min().unwrap();
-        let n_buckets = (*values.max().unwrap() - min_value).to_usize().unwrap() + 1;
+        let n_buckets = values.max().unwrap().to_usize().unwrap() + 1;
         let buckets = vec![VecDeque::new(); n_buckets];
         let status = vec![ElemStatus::OUT; size];
         let mut queue = BucketQueue {
             values,
             buckets: buckets,
-            min_value: min_value,
             min_priority: n_buckets,
             max_priority: 0,
             status: status,
@@ -142,7 +138,7 @@ where
 
     #[inline(always)]
     fn get_bucket(&self, index: usize) -> usize {
-        return (self.values[index] - self.min_value).to_usize().unwrap();
+        return self.values[index].to_usize().unwrap();
     }
 }
 
