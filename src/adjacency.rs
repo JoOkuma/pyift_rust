@@ -56,7 +56,7 @@ impl Adjacency for AdjacencyGrid2D {
 
         // (-1, 0)
         let ny = y;
-        let nx = x.wrapping_add(1);
+        let nx = x.wrapping_sub(1);
         if self.is_valid(nx, ny) {
             valid_neighbors.push(self.to_index(nx, ny));
         }
@@ -155,10 +155,10 @@ fn test_2d_neighborhood() {
     let adj = AdjacencyGrid2D::new(&shape);
     let neighbors = adj.neighbors(4);
     assert_eq!(neighbors.len(), 4);
-    assert_eq!(neighbors[0], 3);
+    assert_eq!(neighbors[0], 7);
     assert_eq!(neighbors[1], 5);
     assert_eq!(neighbors[2], 1);
-    assert_eq!(neighbors[3], 7);
+    assert_eq!(neighbors[3], 3);
 
     // check invalid neighbors
     let neighbors = adj.neighbors(0);
@@ -177,12 +177,12 @@ fn test_3d_neighboorhood() {
     let adj = AdjacencyGrid3D::new(&shape);
     let neighbors = adj.neighbors(13);
     assert_eq!(neighbors.len(), 6);
-    assert_eq!(neighbors[0], 12);
-    assert_eq!(neighbors[1], 14);
-    assert_eq!(neighbors[2], 10);
-    assert_eq!(neighbors[3], 16);
-    assert_eq!(neighbors[4], 4);
-    assert_eq!(neighbors[5], 22);
+    assert_eq!(neighbors[0], 22);
+    assert_eq!(neighbors[1], 16);
+    assert_eq!(neighbors[2], 14);
+    assert_eq!(neighbors[3], 4);
+    assert_eq!(neighbors[4], 10);
+    assert_eq!(neighbors[5], 12);
 
     // check invalid neighbors
     let neighbors = adj.neighbors(0);

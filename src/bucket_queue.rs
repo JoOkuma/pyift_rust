@@ -7,8 +7,8 @@ use std::ops::Sub;
 
 /*
 todo:
-    - avoid removing from queue, create a list of invalid nodes and ignore them when popping / checking empty
     - bucket queue does not accept or check for negative values
+    - known bug: if multiple updates are done decreaising the value and then increasing it again, there might be nodes in the queue that should not be there
  */
 
 pub struct BucketQueue<'a, T: 'static> {
@@ -78,6 +78,12 @@ where
         if self.status[index] != ElemStatus::IN {
             return Err("Removing element not in queue.");
         }
+        let bucket = self.get_bucket(index);
+        let index_in_bucket = self.buckets[bucket]
+            .iter()
+            .position(|&x| x == index)
+            .unwrap();
+        self.buckets[bucket].remove(index_in_bucket);
         self.status[index] = ElemStatus::OUT;
         Ok(())
     }
@@ -86,7 +92,10 @@ where
         if self.status[index] != ElemStatus::IN {
             self.values[index] = value;
         } else {
-            self.remove(index).unwrap();
+            // if value is smaller than current it doesn't need to be removed
+            if value > self.values[index] {
+                self.remove(index).unwrap();
+            }
             self.values[index] = value;
             self.insert(index, parent_index).unwrap();
         }
@@ -151,32 +160,31 @@ fn test_bucket_queue() {
     let mut queue = BucketQueue::new(&mut values);
 
     assert!(queue.is_empty());
-    assert_eq!(queue.min_value, 1);
 
     // Insert a new element
     queue.insert(0, -1).unwrap();
 
     assert!(!queue.is_empty());
-    assert_eq!(queue.min_priority, 2);
-    assert_eq!(queue.buckets[2].len(), 1);
+    assert_eq!(queue.min_priority, 3);
+    assert_eq!(queue.buckets[3].len(), 1);
     assert_eq!(queue.status[0], ElemStatus::IN);
 
     // Insert smaller element
     queue.insert(1, 0).unwrap();
 
-    assert_eq!(queue.buckets[0].len(), 1);
+    assert_eq!(queue.buckets[1].len(), 1);
     assert_eq!(queue.status[1], ElemStatus::IN);
 
     // Insert equal element
     queue.insert(3, 0).unwrap();
 
-    assert_eq!(queue.buckets[2].len(), 2);
+    assert_eq!(queue.buckets[3].len(), 2);
     assert_eq!(queue.status[3], ElemStatus::IN);
 
     // Insert last element
     queue.insert(2, 0).unwrap();
 
-    assert_eq!(queue.buckets[1].len(), 1);
+    assert_eq!(queue.buckets[2].len(), 1);
     assert!(!queue.is_full()); // it's never full
     assert!(!queue.is_empty());
 
@@ -187,14 +195,15 @@ fn test_bucket_queue() {
     // Increase value from 2
     queue.update_value(2, 5, -1);
 
-    assert_eq!(queue.buckets[4].len(), 1);
-    assert_eq!(queue.buckets[1].len(), 0);
+    assert_eq!(queue.buckets[5].len(), 1);
+    assert_eq!(queue.buckets[2].len(), 0);  // must be empty because 5 is greater than the previous value
 
     // Return to original value
     queue.update_value(2, 2, -1);
 
-    assert_eq!(queue.buckets[1].len(), 1);
-    assert_eq!(queue.buckets[4].len(), 0);
+    queue.is_empty(); // refreching min. priority bucket
+    assert_eq!(queue.buckets[2].len(), 1);
+    assert_eq!(queue.buckets[5].len(), 1);  // because the update is a smaller value this bucket is not empty
 
     // Poping again
     assert_eq!(queue.pop().unwrap(), 2);
@@ -202,7 +211,7 @@ fn test_bucket_queue() {
     // Remove element
     queue.remove(0).unwrap();
 
-    assert_eq!(queue.buckets[2].len(), 1); // single element left
+    assert_eq!(queue.buckets[3].len(), 1); // single element left
     assert!(!queue.is_full());
 
     queue.reset();
