@@ -1,3 +1,4 @@
+use crate::priority_queue::PriorityQueue;
 use ndarray::prelude::*;
 use num_traits::Bounded;
 use numpy::Element;
@@ -22,11 +23,11 @@ where
     ages: Vec<i64>,
 }
 
-impl<'a, T> Heap<'a, T>
+impl<'a, T> PriorityQueue<'a, T> for Heap<'a, T>
 where
     T: Bounded + Copy + Clone + Element + PartialOrd,
 {
-    pub fn new(values: &'a mut Array1<T>) -> Self {
+    fn new(values: &'a mut Array1<T>) -> Self {
         let size = values.len();
         if size < 1 {
             panic!("Heap size must be greater than 0");
@@ -48,12 +49,115 @@ where
         heap
     }
 
-    pub fn is_full(&self) -> bool {
+    fn is_full(&self) -> bool {
         self.last + 1 == self.size
     }
 
-    pub fn is_empty(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.last == self.size
+    }
+
+    fn insert(&mut self, index: usize, parent_index: i64) -> Result<(), &'static str> {
+        if self.is_full() {
+            return Err("Heap is full");
+        }
+
+        self.try_update_age(index, parent_index);
+
+        if self.is_empty() {
+            self.last = 0;
+        } else {
+            self.last += 1;
+        }
+
+        self.nodes[self.last] = index;
+        self.status[index] = ElemStatus::IN;
+        self.pos[index] = self.last;
+        self.move_up_from_position(self.last);
+
+        Ok(())
+    }
+
+    fn pop(&mut self) -> Result<usize, &'static str> {
+        if self.is_empty() {
+            return Err("Heap is empty");
+        }
+
+        let index = self.nodes[0];
+        self.status[index] = ElemStatus::POPPED;
+        self.swap(0, self.last);
+
+        // making removed invalid
+        self.pos[index] = self.size;
+        self.nodes[self.last] = self.size;
+
+        if self.last == 0 {
+            self.last = self.size;
+        } else {
+            self.last -= 1;
+            // FIXME: this step is extremelly slow on watershed from minima
+            self.move_down_from_position(0);
+        }
+        Ok(index)
+    }
+
+    fn remove(&mut self, index: usize) -> Result<(), &'static str> {
+        if self.pos[index] == self.size {
+            return Err("Element not in heap");
+        }
+
+        let value = self.values[index];
+        self.values[index] = T::min_value();
+        self.move_up_from_position(self.pos[index]);
+
+        self.pop()?;
+
+        self.values[index] = value;
+        self.status[index] = ElemStatus::OUT;
+
+        Ok(())
+    }
+
+    fn update_value(&mut self, index: usize, value: T, parent_index: i64) -> () {
+        let prev_value = self.values[index];
+
+        self.values[index] = value;
+
+        if self.status[index] == ElemStatus::IN {
+            if value < prev_value {
+                self.move_up(index, parent_index)
+            } else if value > prev_value {
+                self.move_down(index, parent_index)
+            }
+        }
+    }
+
+    #[inline(always)]
+    fn get_value(&self, index: usize) -> T {
+        self.values[index]
+    }
+}
+
+impl<'a, T> Heap<'a, T>
+where
+    T: Bounded + Copy + Clone + Element + PartialOrd,
+{
+    fn try_update_age(&mut self, index: usize, parent_index: i64) -> () {
+        if parent_index >= 0 {
+            self.ages[index] = self.ages[parent_index as usize] + 1;
+        } else {
+            self.ages[index] = 0;
+        }
+    }
+
+    fn move_up(&mut self, index: usize, parent_index: i64) -> () {
+        self.try_update_age(index, parent_index);
+        self.move_up_from_position(self.pos[index]);
+    }
+
+    fn move_down(&mut self, index: usize, parent_index: i64) -> () {
+        self.try_update_age(index, parent_index);
+        self.move_down_from_position(self.pos[index]);
     }
 
     fn reset(&mut self) -> () {
@@ -125,104 +229,6 @@ where
             self.swap(next, pos);
             self.move_down_from_position(next);
         }
-    }
-
-    fn try_update_age(&mut self, index: usize, parent_index: i64) -> () {
-        if parent_index >= 0 {
-            self.ages[index] = self.ages[parent_index as usize] + 1;
-        } else {
-            self.ages[index] = 0;
-        }
-    }
-
-    pub fn insert(&mut self, index: usize, parent_index: i64) -> Result<(), &'static str> {
-        if self.is_full() {
-            return Err("Heap is full");
-        }
-
-        self.try_update_age(index, parent_index);
-
-        if self.is_empty() {
-            self.last = 0;
-        } else {
-            self.last += 1;
-        }
-
-        self.nodes[self.last] = index;
-        self.status[index] = ElemStatus::IN;
-        self.pos[index] = self.last;
-        self.move_up_from_position(self.last);
-
-        Ok(())
-    }
-
-    pub fn pop(&mut self) -> Result<usize, &'static str> {
-        if self.is_empty() {
-            return Err("Heap is empty");
-        }
-
-        let index = self.nodes[0];
-        self.status[index] = ElemStatus::POPPED;
-        self.swap(0, self.last);
-
-        // making removed invalid
-        self.pos[index] = self.size;
-        self.nodes[self.last] = self.size;
-
-        if self.last == 0 {
-            self.last = self.size;
-        } else {
-            self.last -= 1;
-            // FIXME: this step is extremelly slow on watershed from minima
-            self.move_down_from_position(0);
-        }
-        Ok(index)
-    }
-
-    pub fn remove(&mut self, index: usize) -> Result<(), &'static str> {
-        if self.pos[index] == self.size {
-            return Err("Element not in heap");
-        }
-
-        let value = self.values[index];
-        self.values[index] = T::min_value();
-        self.move_up_from_position(self.pos[index]);
-
-        self.pop()?;
-
-        self.values[index] = value;
-        self.status[index] = ElemStatus::OUT;
-
-        Ok(())
-    }
-
-    fn move_up(&mut self, index: usize, parent_index: i64) -> () {
-        self.try_update_age(index, parent_index);
-        self.move_up_from_position(self.pos[index]);
-    }
-
-    fn move_down(&mut self, index: usize, parent_index: i64) -> () {
-        self.try_update_age(index, parent_index);
-        self.move_down_from_position(self.pos[index]);
-    }
-
-    pub fn update_value(&mut self, index: usize, value: T, parent_index: i64) -> () {
-        let prev_value = self.values[index];
-
-        self.values[index] = value;
-
-        if self.status[index] == ElemStatus::IN {
-            if value < prev_value {
-                self.move_up(index, parent_index)
-            } else if value > prev_value {
-                self.move_down(index, parent_index)
-            }
-        }
-    }
-
-    #[inline(always)]
-    pub fn get_value(&self, index: usize) -> T {
-        self.values[index]
     }
 }
 

@@ -5,6 +5,7 @@ use std::ops::Add;
 
 use crate::adjacency::{Adjacency, AdjacencyGrid2D, AdjacencyGrid3D};
 use crate::heap::{ElemStatus, Heap};
+use crate::priority_queue::PriorityQueue;
 use num_traits::{Bounded, Zero};
 
 pub fn watershed_from_minima<T, D>(
@@ -111,7 +112,8 @@ macro_rules! impl_watershed_from_minima {
         }
     };
 }
-
+impl_watershed_from_minima!(watershed_from_minima_u8_2d, u8, 2);
+impl_watershed_from_minima!(watershed_from_minima_u8_3d, u8, 3);
 impl_watershed_from_minima!(watershed_from_minima_u16_2d, u16, 2);
 impl_watershed_from_minima!(watershed_from_minima_u16_3d, u16, 3);
 impl_watershed_from_minima!(watershed_from_minima_u32_2d, u32, 2);
