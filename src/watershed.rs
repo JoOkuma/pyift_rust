@@ -2,21 +2,19 @@ use ndarray::*;
 use num_traits::{Bounded, ToPrimitive, Zero};
 use numpy::{Element, IntoPyArray, PyArray, PyReadonlyArray};
 use pyo3::prelude::*;
-use std::ops::{Add, Sub};
 use std::any::TypeId;
 use std::fmt::Debug;
+use std::ops::{Add, Sub};
 
 use crate::adjacency::{Adjacency, AdjacencyGrid2D, AdjacencyGrid3D};
 use crate::bucket_queue::BucketQueue;
 use crate::heap::Heap;
 use crate::priority_queue::{ElemStatus, PriorityQueue};
 
-
 fn is_float<T: 'static>() -> bool {
     let type_id = TypeId::of::<T>();
     type_id == TypeId::of::<f32>() || type_id == TypeId::of::<f64>()
 }
-
 
 pub fn watershed_from_minima<T, D>(
     topology: &ArrayView<T, D>,

@@ -30,8 +30,7 @@ where
     fn is_empty(&mut self) -> bool {
         while self.min_priority <= self.max_priority {
             let bucket = &mut self.buckets[self.min_priority];
-            while !bucket.is_empty()
-            {
+            while !bucket.is_empty() {
                 if self.status[bucket[0]] == ElemStatus::IN {
                     return false;
                 }
@@ -196,14 +195,14 @@ fn test_bucket_queue() {
     queue.update_value(2, 5, -1);
 
     assert_eq!(queue.buckets[5].len(), 1);
-    assert_eq!(queue.buckets[2].len(), 0);  // must be empty because 5 is greater than the previous value
+    assert_eq!(queue.buckets[2].len(), 0); // must be empty because 5 is greater than the previous value
 
     // Return to original value
     queue.update_value(2, 2, -1);
 
     queue.is_empty(); // refreching min. priority bucket
     assert_eq!(queue.buckets[2].len(), 1);
-    assert_eq!(queue.buckets[5].len(), 1);  // because the update is a smaller value this bucket is not empty
+    assert_eq!(queue.buckets[5].len(), 1); // because the update is a smaller value this bucket is not empty
 
     // Poping again
     assert_eq!(queue.pop().unwrap(), 2);
