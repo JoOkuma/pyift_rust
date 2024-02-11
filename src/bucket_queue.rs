@@ -1,5 +1,6 @@
 use crate::priority_queue::{ElemStatus, PriorityQueue};
 use ndarray::prelude::Array1;
+use ndarray_stats::QuantileExt;
 use num_traits::ToPrimitive;
 use std::collections::VecDeque;
 use std::ops::Sub;
@@ -20,18 +21,15 @@ pub struct BucketQueue<'a, T> {
 
 impl<'a, T> PriorityQueue<'a, T> for BucketQueue<'a, T>
 where
-    T: Sub<Output = T> + ToPrimitive + Ord + Copy + Sub,
+    T: Sub<Output = T> + ToPrimitive + PartialOrd + Copy + Sub,
 {
     fn new(values: &'a mut Array1<T>) -> Self {
         let size = values.len();
         if size < 1 {
             panic!("Heap size must be greater than 0");
         }
-        let min_value = *values.iter().min().unwrap();
-        let n_buckets = (*values.iter().max().unwrap() - min_value)
-            .to_usize()
-            .unwrap()
-            + 1;
+        let min_value = *values.min().unwrap();
+        let n_buckets = (*values.max().unwrap() - min_value).to_usize().unwrap() + 1;
         let buckets = vec![VecDeque::new(); n_buckets];
         let status = vec![ElemStatus::OUT; size];
         let mut queue = BucketQueue {
@@ -115,10 +113,6 @@ where
         }
     }
 
-    fn get_value(&self, index: usize) -> T {
-        return self.values[index];
-    }
-
     fn reset(&mut self) -> () {
         self.min_priority = self.values.len();
         self.max_priority = 0;
@@ -129,11 +123,21 @@ where
             self.buckets[i].clear();
         }
     }
+
+    #[inline(always)]
+    fn get_value(&self, index: usize) -> T {
+        return self.values[index];
+    }
+
+    #[inline(always)]
+    fn get_status(&self, index: usize) -> ElemStatus {
+        return self.status[index];
+    }
 }
 
 impl<'a, T> BucketQueue<'a, T>
 where
-    T: Sub<Output = T> + ToPrimitive + Ord + Copy + Sub,
+    T: Sub<Output = T> + ToPrimitive + Copy,
 {
     #[inline(always)]
     fn get_bucket(&self, index: usize) -> usize {

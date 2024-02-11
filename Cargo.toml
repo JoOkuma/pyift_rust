@@ -12,6 +12,7 @@ pyo3 = "0.19.0"
 numpy = "0.19.0"
 ndarray = "0.15.6"
 num-traits = "0.2.16"
+ndarray-stats = "0.5.1"
 
 [features]
 extension-module = ["pyo3/extension-module"]

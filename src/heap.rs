@@ -125,11 +125,6 @@ where
         }
     }
 
-    #[inline(always)]
-    fn get_value(&self, index: usize) -> T {
-        self.values[index]
-    }
-
     fn reset(&mut self) -> () {
         self.last = self.size;
         for i in 0..self.size {
@@ -138,6 +133,16 @@ where
             self.status[i] = ElemStatus::OUT;
             self.ages[i] = 0;
         }
+    }
+
+    #[inline(always)]
+    fn get_value(&self, index: usize) -> T {
+        return self.values[index];
+    }
+
+    #[inline(always)]
+    fn get_status(&self, index: usize) -> ElemStatus {
+        return self.status[index];
     }
 }
 
