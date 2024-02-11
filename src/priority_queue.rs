@@ -1,5 +1,12 @@
 use ndarray::prelude::Array1;
 
+#[derive(Clone, Debug, PartialEq)]
+pub enum ElemStatus {
+    OUT,
+    IN,
+    POPPED,
+}
+
 pub trait PriorityQueue<'a, T> {
     fn new(values: &'a mut Array1<T>) -> Self;
     fn is_full(&self) -> bool;

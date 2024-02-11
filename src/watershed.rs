@@ -4,8 +4,8 @@ use pyo3::prelude::*;
 use std::ops::Add;
 
 use crate::adjacency::{Adjacency, AdjacencyGrid2D, AdjacencyGrid3D};
-use crate::heap::{ElemStatus, Heap};
-use crate::priority_queue::PriorityQueue;
+use crate::heap::Heap;
+use crate::priority_queue::{ElemStatus, PriorityQueue};
 use num_traits::{Bounded, Zero};
 
 pub fn watershed_from_minima<T, D>(

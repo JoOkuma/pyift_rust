@@ -1,14 +1,7 @@
-use crate::priority_queue::PriorityQueue;
+use crate::priority_queue::{ElemStatus, PriorityQueue};
 use ndarray::prelude::*;
 use num_traits::Bounded;
 use numpy::Element;
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum ElemStatus {
-    OUT,
-    IN,
-    POPPED,
-}
 
 pub struct Heap<'a, T>
 where
