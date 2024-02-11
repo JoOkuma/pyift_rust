@@ -60,7 +60,7 @@ where
     let mut queue: Box<dyn PriorityQueue<T>> = match is_float::<T>() {
         false => Box::new(BucketQueue::new(&mut cost)),
         true => Box::new(Heap::new(&mut cost)),
-        _ => panic!("Unsupported dimension!"),
+        _ => panic!("Unsupported type!"),
     };
 
     for i in 0..size {
