@@ -46,7 +46,7 @@ where
         self.last + 1 == self.size
     }
 
-    fn is_empty(&self) -> bool {
+    fn is_empty(&mut self) -> bool {
         self.last == self.size
     }
 
@@ -129,6 +129,16 @@ where
     fn get_value(&self, index: usize) -> T {
         self.values[index]
     }
+
+    fn reset(&mut self) -> () {
+        self.last = self.size;
+        for i in 0..self.size {
+            self.nodes[i] = i;
+            self.pos[i] = i;
+            self.status[i] = ElemStatus::OUT;
+            self.ages[i] = 0;
+        }
+    }
 }
 
 impl<'a, T> Heap<'a, T>
@@ -151,16 +161,6 @@ where
     fn move_down(&mut self, index: usize, parent_index: i64) -> () {
         self.try_update_age(index, parent_index);
         self.move_down_from_position(self.pos[index]);
-    }
-
-    fn reset(&mut self) -> () {
-        self.last = self.size;
-        for i in 0..self.size {
-            self.nodes[i] = i;
-            self.pos[i] = i;
-            self.status[i] = ElemStatus::OUT;
-            self.ages[i] = 0;
-        }
     }
 
     fn parent(&self, i: usize) -> i64 {

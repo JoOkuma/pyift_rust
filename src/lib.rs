@@ -2,6 +2,7 @@ use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 
 mod adjacency;
+mod bucket_queue;
 mod heap;
 mod priority_queue;
 mod watershed;
