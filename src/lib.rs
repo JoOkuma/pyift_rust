@@ -9,7 +9,7 @@ mod watershed;
 pub use watershed::*;
 
 #[pymodule]
-fn pyift_rust(_py: Python, m: &PyModule) -> PyResult<()> {
+fn _rust_ift(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(watershed_from_minima_u8_2d, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_from_minima_u8_3d, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_from_minima_u16_2d, m)?)?;

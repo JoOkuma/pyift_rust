@@ -1,4 +1,3 @@
-
 import time
 import scipy.ndimage as ndi
 import napari
