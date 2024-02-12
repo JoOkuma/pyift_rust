@@ -1,5 +1,3 @@
-use ndarray::prelude::Array1;
-
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ElemStatus {
     OUT,
@@ -14,7 +12,7 @@ pub trait PriorityQueue<'a, T: 'static> {
     fn pop(&mut self) -> Result<usize, &'static str>;
     fn remove(&mut self, index: usize) -> Result<(), &'static str>;
     fn update_value(&mut self, index: usize, value: T, parent_index: i64);
-    fn reset(&mut self) -> ();
+    fn reset(&mut self);
     fn get_value(&self, index: usize) -> T;
     fn get_status(&self, index: usize) -> ElemStatus;
 }

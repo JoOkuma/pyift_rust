@@ -24,7 +24,7 @@ where
     T: Sub<Output = T> + ToPrimitive + PartialOrd + Copy + Sub,
 {
     fn is_full(&self) -> bool {
-        return false;
+        false
     }
 
     fn is_empty(&mut self) -> bool {
@@ -38,10 +38,10 @@ where
             }
             self.min_priority += 1;
         }
-        return true;
+        true
     }
 
-    fn insert(&mut self, index: usize, parent_index: i64) -> Result<(), &'static str> {
+    fn insert(&mut self, index: usize, _parent_index: i64) -> Result<(), &'static str> {
         let bucket = self.get_bucket(index);
 
         if bucket < self.min_priority {
@@ -70,7 +70,7 @@ where
         }
         let index = self.buckets[self.min_priority].pop_front().unwrap();
         self.status[index] = ElemStatus::POPPED;
-        return Ok(index);
+        Ok(index)
     }
 
     fn remove(&mut self, index: usize) -> Result<(), &'static str> {
@@ -87,7 +87,7 @@ where
         Ok(())
     }
 
-    fn update_value(&mut self, index: usize, value: T, parent_index: i64) -> () {
+    fn update_value(&mut self, index: usize, value: T, parent_index: i64) {
         if self.status[index] != ElemStatus::IN {
             self.values[index] = value;
         } else {
@@ -100,7 +100,7 @@ where
         }
     }
 
-    fn reset(&mut self) -> () {
+    fn reset(&mut self) {
         self.min_priority = self.values.len();
         self.max_priority = 0;
         for i in 0..self.status.len() {
@@ -113,12 +113,12 @@ where
 
     #[inline(always)]
     fn get_value(&self, index: usize) -> T {
-        return self.values[index];
+        self.values[index]
     }
 
     #[inline(always)]
     fn get_status(&self, index: usize) -> ElemStatus {
-        return self.status[index];
+        self.status[index]
     }
 }
 
@@ -134,19 +134,19 @@ where
         let n_buckets = values.max().unwrap().to_usize().unwrap() + 1;
         let buckets = vec![VecDeque::new(); n_buckets];
         let status = vec![ElemStatus::OUT; size];
-        let mut queue = BucketQueue {
+
+        BucketQueue {
             values,
-            buckets: buckets,
+            buckets,
             min_priority: n_buckets,
             max_priority: 0,
-            status: status,
-        };
-        queue
+            status,
+        }
     }
 
     #[inline(always)]
     fn get_bucket(&self, index: usize) -> usize {
-        return self.values[index].to_usize().unwrap();
+        self.values[index].to_usize().unwrap()
     }
 }
 

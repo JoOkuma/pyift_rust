@@ -5,7 +5,7 @@ import napari
 from skimage import data, filters, segmentation
 from edt import edt
 
-from pyift_rust import watershed_from_minima_u8_3d
+from pyift import watershed_from_minima
 
 
 def main() -> None:
@@ -14,7 +14,7 @@ def main() -> None:
 
     # detect foreground and background
     blurred = ndi.gaussian_filter(nuclei, sigma=2)
-    # blurred = ndi.zoom(blurred, 2, order=1)
+    blurred = ndi.zoom(blurred, 2, order=1)
     print(blurred.shape)
 
     foreground = blurred > filters.threshold_otsu(blurred)
@@ -26,7 +26,7 @@ def main() -> None:
     print("Scikit-image watershed time: ", time.time() - start)
 
     start = time.time()
-    labels = watershed_from_minima_u8_3d(dist, mask=foreground, h=5)
+    labels = watershed_from_minima(dist, mask=foreground, h=5)
     print("IFT watershed time: ", time.time() - start)
     labels, _, _ = segmentation.relabel_sequential(labels)
 

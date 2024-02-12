@@ -89,7 +89,7 @@ where
         Ok(())
     }
 
-    fn update_value(&mut self, index: usize, value: T, parent_index: i64) -> () {
+    fn update_value(&mut self, index: usize, value: T, parent_index: i64) {
         let prev_value = self.values[index];
 
         self.values[index] = value;
@@ -103,7 +103,7 @@ where
         }
     }
 
-    fn reset(&mut self) -> () {
+    fn reset(&mut self) {
         self.last = self.size;
         for i in 0..self.size {
             self.nodes[i] = i;
@@ -115,12 +115,12 @@ where
 
     #[inline(always)]
     fn get_value(&self, index: usize) -> T {
-        return self.values[index];
+        self.values[index]
     }
 
     #[inline(always)]
     fn get_status(&self, index: usize) -> ElemStatus {
-        return self.status[index];
+        self.status[index]
     }
 }
 
@@ -133,10 +133,10 @@ where
         if size < 1 {
             panic!("Heap size must be greater than 0");
         }
-        let mut nodes = vec![0; size];
-        let mut pos = vec![0; size];
-        let mut status = vec![ElemStatus::OUT; size];
-        let mut ages = vec![0; size];
+        let nodes = vec![0; size];
+        let pos = vec![0; size];
+        let status = vec![ElemStatus::OUT; size];
+        let ages = vec![0; size];
         let mut heap = Heap {
             values,
             nodes,
@@ -150,7 +150,7 @@ where
         heap
     }
 
-    fn try_update_age(&mut self, index: usize, parent_index: i64) -> () {
+    fn try_update_age(&mut self, index: usize, parent_index: i64) {
         if parent_index >= 0 {
             self.ages[index] = self.ages[parent_index as usize] + 1;
         } else {
@@ -158,12 +158,12 @@ where
         }
     }
 
-    fn move_up(&mut self, index: usize, parent_index: i64) -> () {
+    fn move_up(&mut self, index: usize, parent_index: i64) {
         self.try_update_age(index, parent_index);
         self.move_up_from_position(self.pos[index]);
     }
 
-    fn move_down(&mut self, index: usize, parent_index: i64) -> () {
+    fn move_down(&mut self, index: usize, parent_index: i64) {
         self.try_update_age(index, parent_index);
         self.move_down_from_position(self.pos[index]);
     }
@@ -180,10 +180,8 @@ where
         2 * i + 2
     }
 
-    fn swap(&mut self, i: usize, j: usize) -> () {
-        let tmp = self.nodes[i];
-        self.nodes[i] = self.nodes[j];
-        self.nodes[j] = tmp;
+    fn swap(&mut self, i: usize, j: usize) {
+        self.nodes.swap(i, j);
         self.pos[self.nodes[i]] = i;
         self.pos[self.nodes[j]] = j;
     }
@@ -203,7 +201,7 @@ where
     }
 
     // moves towards root (smaller values) of heap
-    fn move_up_from_position(&mut self, pos: usize) -> () {
+    fn move_up_from_position(&mut self, pos: usize) {
         let mut current = pos;
         let mut parent = self.parent(current);
         while (parent >= 0) && self.greater(parent as usize, current) {
@@ -213,7 +211,7 @@ where
         }
     }
 
-    fn move_down_from_position(&mut self, pos: usize) -> () {
+    fn move_down_from_position(&mut self, pos: usize) {
         let mut next = pos;
         let left = self.left_child(pos);
         let right = self.right_child(pos);

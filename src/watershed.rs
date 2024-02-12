@@ -76,14 +76,12 @@ where
 
         for q in adj.neighbors(p) {
             if mask[q] && queue.get_status(q) != ElemStatus::POPPED {
-                let path_cost: T;
-
                 // fmax
-                if topology[q] > queue.get_value(p) {
-                    path_cost = topology[q];
+                let path_cost: T = if topology[q] > queue.get_value(p) {
+                    topology[q]
                 } else {
-                    path_cost = queue.get_value(p);
-                }
+                    queue.get_value(p)
+                };
 
                 if path_cost < queue.get_value(q) {
                     root[q] = root[p];
